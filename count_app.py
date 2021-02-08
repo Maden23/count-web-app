@@ -21,7 +21,7 @@ def is_valid_number(n):
         int(n)
     except ValueError:
         return False
-    return int(n)>0
+    return int(n)>=0
 
 @app.route('/increase', methods=['POST'])
 def increase():
