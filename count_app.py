@@ -68,7 +68,7 @@ def increase():
         # num+1 is in database
         else:
             logging.info(f'User {request.remote_addr} sent number {num}. {num} + 1 is found in database')
-            res = (jsonify({'error' : str(num) + '+1 exists in database'}), 400)
+            res = (jsonify({'error' : str(num) + '+1 exists in database'}), 409)
         try:
             # add num to database 
             new_num = ProcessedNumber(num)
@@ -80,7 +80,7 @@ def increase():
     # num is in database
     else:
         logging.info(f'User {request.remote_addr} sent number {num}. This number is found in database')
-        res = (jsonify({'error' : str(num) + ' exists in database'}), 400)
+        res = (jsonify({'error' : str(num) + ' exists in database'}), 409)
     
     return res
 
