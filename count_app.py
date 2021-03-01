@@ -17,11 +17,17 @@ class ProcessedNumber(db.Model):
         return 'Proccessed number %r>' % self.num
 
 def is_valid_number(n):
+    # Input should contain digits only
+    str_n  = str(n)
+    for c in str_n:
+        if not c.isdigit():
+            return False
+    # Check if it converts to int
     try:
         int(n)
     except ValueError:
         return False
-    return int(n)>=0
+    return True
 
 @app.route('/increase', methods=['POST'])
 def increase():
