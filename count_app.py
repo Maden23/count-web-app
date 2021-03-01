@@ -1,10 +1,27 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import logging
+import os
+
+DEFAULT_DATABASE_URI = 'mysql+pymysql://root:password@localhost/count_db'
 
 app = Flask(__name__)
+
+# Parse environment variables
+for variable, value in os.environ.items():
+    app.config[variable] = value
+
+# Set up logging
 logging.basicConfig(filename='count_app.log', level=logging.INFO)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/count_db'
+
+# Connect to database
+uri = DEFAULT_DATABASE_URI
+if all(k in app.config.keys() for k in ['DATABASE_USER', 'DATABASE_PASSWORD', 'DATABASE_HOST', 'DATABASE_NAME']):
+    uri = f"mysql+pymysql://{app.config['DATABASE_USER']}:{app.config['DATABASE_PASSWORD']}@{app.config['DATABASE_HOST']}"
+    if 'DATABASE_PORT' in app.config.keys():
+        uri += str(app.config['DATABASE_PORT'])
+    uri+= f"/{app.config['DATABASE_NAME']}"
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
 db = SQLAlchemy(app)
 
 class ProcessedNumber(db.Model):
@@ -18,10 +35,8 @@ class ProcessedNumber(db.Model):
 
 def is_valid_number(n):
     # Input should contain digits only
-    str_n  = str(n)
-    for c in str_n:
-        if not c.isdigit():
-            return False
+    if any(not c.isdigit() for c in str(n)):
+        return False
     # Check if it converts to int
     try:
         int(n)
