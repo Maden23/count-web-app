@@ -12,7 +12,7 @@ for variable, value in os.environ.items():
     app.config[variable] = value
 
 # Set up logging
-logging.basicConfig(filename='count_app.log', level=logging.INFO)
+app.logger.setLevel(logging.DEBUG)
 
 # Connect to database
 uri = DEFAULT_DATABASE_URI
@@ -31,7 +31,7 @@ class ProcessedNumber(db.Model):
         self.num = num
 
     def __repr__(self):
-        return 'Proccessed number %r>' % self.num
+        return 'Proccessed number %r' % self.num
 
 def is_valid_number(n):
     # Input should contain digits only
@@ -59,7 +59,6 @@ def increase():
 
     res = ()
 
-    print(ProcessedNumber.query.filter_by(num=num).first())
     # num is NOT in database
     if ProcessedNumber.query.filter_by(num=num).first() is None:
         # num+1 is NOT in database
@@ -67,7 +66,7 @@ def increase():
             res = (jsonify({'increased_num' : num+1}), 200)
         # num+1 is in database
         else:
-            logging.info(f'User {request.remote_addr} sent number {num}. {num} + 1 is found in database')
+            app.logger.info(f'User {request.remote_addr} sent number {num}. {num} + 1 is found in database')
             res = (jsonify({'error' : str(num) + '+1 exists in database'}), 409)
         try:
             # add num to database 
@@ -75,11 +74,11 @@ def increase():
             db.session.add(new_num)
             db.session.commit()
         except SQLAlchemyError as e:
-            logging.error(str(e.__dict__['orig']))        
+            app.logger.error(str(e.__dict__['orig']))        
             res = (jsonify({'error' : 'Application server error'}),500)
     # num is in database
     else:
-        logging.info(f'User {request.remote_addr} sent number {num}. This number is found in database')
+        app.logger.info(f'User {request.remote_addr} sent number {num}. This number is found in database')
         res = (jsonify({'error' : str(num) + ' exists in database'}), 409)
     
     return res
